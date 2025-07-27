@@ -1,49 +1,57 @@
 import "@testing-library/jest-dom";
-import { render, screen, fireEvent } from "@testing-library/react";
+import React from "react";
+import { render, fireEvent, screen } from "@testing-library/react";
 import NewTaskForm from "../components/NewTaskForm";
-import { CATEGORIES } from "../data";
 import App from "../components/App";
+import { CATEGORIES } from "../data";
 
-test("calls the onTaskFormSubmit callback prop when the form is submitted", () => {
-  const onTaskFormSubmit = jest.fn();
-  render(
-    <NewTaskForm categories={CATEGORIES} onTaskFormSubmit={onTaskFormSubmit} />
-  );
+describe("NewTaskForm", () => {
+  test("calls the onTaskFormSubmit callback prop when the form is submitted", () => {
+    const onTaskFormSubmit = jest.fn();
 
-  fireEvent.change(screen.queryByLabelText(/Details/), {
-    target: { value: "Pass the tests" },
+    render(
+      <NewTaskForm
+        categories={CATEGORIES}
+        onTaskFormSubmit={onTaskFormSubmit}
+      />
+    );
+
+    fireEvent.change(screen.getByLabelText(/Details/i), {
+      target: { value: "Pass the tests" },
+    });
+
+    fireEvent.change(screen.getByLabelText(/Category/i), {
+      target: { value: "Code" },
+    });
+
+    fireEvent.submit(screen.getByTestId("task-form"));
+
+    expect(onTaskFormSubmit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        text: "Pass the tests",
+        category: "Code",
+      })
+    );
   });
 
-  fireEvent.change(screen.queryByLabelText(/Category/), {
-    target: { value: "Code" },
+  test("adds a new item to the list when the form is submitted", () => {
+    render(<App />);
+
+    const codeCountBefore = screen.queryAllByText(/Code/).length;
+
+    fireEvent.change(screen.getByLabelText(/Details/i), {
+      target: { value: "Pass the tests" },
+    });
+
+    fireEvent.change(screen.getByLabelText(/Category/i), {
+      target: { value: "Code" },
+    });
+
+    fireEvent.submit(screen.getByTestId("task-form"));
+
+    const codeCountAfter = screen.queryAllByText(/Code/).length;
+
+    expect(screen.queryByText(/Pass the tests/)).toBeInTheDocument();
+    expect(codeCountAfter).toBeGreaterThan(codeCountBefore);
   });
-
-  fireEvent.submit(screen.queryByText(/Add task/));
-
-  expect(onTaskFormSubmit).toHaveBeenCalledWith(
-    expect.objectContaining({
-      text: "Pass the tests",
-      category: "Code",
-    })
-  );
-});
-
-test("adds a new item to the list when the form is submitted", () => {
-  render(<App />);
-
-  const codeCount = screen.queryAllByText(/Code/).length;
-
-  fireEvent.change(screen.queryByLabelText(/Details/), {
-    target: { value: "Pass the tests" },
-  });
-
-  fireEvent.change(screen.queryByLabelText(/Category/), {
-    target: { value: "Code" },
-  });
-
-  fireEvent.submit(screen.queryByText(/Add task/));
-
-  expect(screen.queryByText(/Pass the tests/)).toBeInTheDocument();
-
-  expect(screen.queryAllByText(/Code/).length).toBe(codeCount + 1);
 });

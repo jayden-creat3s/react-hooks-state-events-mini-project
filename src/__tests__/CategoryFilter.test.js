@@ -5,7 +5,8 @@ import App from "../components/App";
 import { CATEGORIES } from "../data";
 
 test("displays a button for each category", () => {
-  render(<CategoryFilter categories={CATEGORIES} />);
+  const mockOnCategoryChange = jest.fn();
+  render(<CategoryFilter categories={CATEGORIES} onCategoryChange={mockOnCategoryChange} />);
   for (const category of CATEGORIES) {
     expect(screen.queryByText(category)).toBeInTheDocument();
   }
